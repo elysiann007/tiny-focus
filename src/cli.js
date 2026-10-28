@@ -1,15 +1,16 @@
 #!/usr/bin/env node
-import { setTimeout as delay } from 'node:timers/promises';
 import { minutes, readSessions, recordSession } from './journal.js';
 import { dailyStats, toCsv } from './reports.js';
 import { readFileSync } from 'node:fs';
 import { openTasks } from './github.js';
 import { terminalText } from './terminal.js';
+import { runTimer } from './timer.js';
 
 const help = `Tiny Focus — offline focus journal
 
 Usage:
   node src/cli.js start [minutes] [label]  Start a timer (default: 25)
+  node src/cli.js break [minutes]          Take a break (default: 5, never logged)
   node src/cli.js log <minutes> [label]    Log a completed session
   node src/cli.js history                 Show completed sessions
   node src/cli.js stats                   Daily totals (UTC)
@@ -32,18 +33,36 @@ async function main() {
       console.log(pkg.version);
       break;
     }
-    case 'start': {
-      const value = minutes(duration ?? 25);
+    case 'start': case 'break': {
+      const isBreak = command === 'break';
+      if (isBreak && labelParts.length) throw new Error('break accepts only an optional duration.');
+      const value = minutes(duration ?? (isBreak ? 5 : 25));
       if (label.length > 200) throw new Error('Label must be 200 characters or fewer.');
-      const deadline = Date.now() + value * 60_000;
-      console.log(`Focusing: ${terminalText(label)} (${value} min). Ctrl+C to cancel.`);
-      while (Date.now() < deadline) {
-        const remaining = Math.max(1, Math.ceil((deadline - Date.now()) / 1000));
-        if (process.stdout.isTTY) process.stdout.write(`\rRemaining: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}   `);
-        await delay(Math.min(1000, Math.max(1, deadline - Date.now())));
+      const controller = new AbortController();
+      let exitCode = 130;
+      const interrupt = () => { exitCode = 130; controller.abort(); };
+      const terminate = () => { exitCode = 143; controller.abort(); };
+      process.once('SIGINT', interrupt);
+      process.once('SIGTERM', terminate);
+      console.log(`${isBreak ? 'Taking a break' : `Focusing: ${terminalText(label)}`} (${value} min). Ctrl+C to cancel.`);
+      try {
+        await runTimer(value, { signal: controller.signal, onTick(remaining) {
+          if (process.stdout.isTTY) process.stdout.write(`\rRemaining: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}   `);
+        } });
+      } catch (error) {
+        if (!controller.signal.aborted) throw error;
+        console.log('\nTimer cancelled. No focus session was saved.');
+        process.exitCode = exitCode;
+        break;
+      } finally {
+        process.removeListener('SIGINT', interrupt);
+        process.removeListener('SIGTERM', terminate);
       }
-      recordSession(value, label);
-      console.log('\nSession complete! Take a short break.');
+      if (isBreak) console.log('\nBreak complete! Ready for your next focus session.');
+      else {
+        recordSession(value, label);
+        console.log('\nSession complete! Take a short break.');
+      }
       break;
     }
     case 'log': {
