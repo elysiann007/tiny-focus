@@ -94,6 +94,8 @@ node src/cli.js backup | Set-Content -Encoding utf8 focus-backup.json
 
 Backups contain your labels and timestamps. Store them privately. Restore accepts Tiny Focus format version 1 JSON files up to 8 MiB, validates the complete input, and merges sessions by ID. Identical sessions are skipped; conflicts or malformed input leave the journal unchanged. Existing local sessions are never removed. UTF-8 BOM files are supported. CSV exports are for spreadsheets and cannot be restored as backups.
 
+The `backup` command checks the final UTF-8 output size, including formatting and escaped controls, before writing anything to stdout. If it would exceed the 8 MiB restore limit, it fails and leaves the source journal unchanged; copy `sessions.jsonl` directly for a full archive of a larger journal. Write backups to a new filename and check command success before relying on the file, because shell redirection opens the destination before the CLI runs.
+
 Writers and backups use an exclusive `.journal.lock` file in the data directory. Retry a busy journal after the other command exits. If a forced shutdown leaves a stale lock, close **all** Tiny Focus commands, copy your data directory as a backup, and remove **only** `.journal.lock` manually. Never remove a lock while a writer may still be running. Restore stages and flushes a temporary file before replacing the journal. This protects against ordinary concurrent Tiny Focus commands; it does not coordinate with external editors or guarantee recovery after disk failure.
 
 ## Pick a GitHub task

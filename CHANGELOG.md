@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1 — 2026-10-28
+
+- Reject oversized serialized backups before stdout output, ensuring generated backups stay within restore's 8 MiB UTF-8 limit.
+- Cover large-journal rejection, unchanged source bytes and Unicode/control-safe backup round trips.
+
 ## 1.4.0 — 2026-10-28
 
 - Added an explicit distribution file allowlist and offline extracted-package checks in all four CI combinations.

@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, readFileSync, writeFileSync, readdirSync } from 'n
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
-import { createBackup, parseBackup, restoreBackup, restoreBackupFile } from '../src/backup.js';
+import { createBackup, createBackupText, parseBackup, restoreBackup, restoreBackupFile } from '../src/backup.js';
 import { readSessions, recordSession, withJournalLock } from '../src/journal.js';
 
 function temporary(t) {
@@ -97,4 +97,25 @@ test('CLI backups are machine-readable and restore preserves preexisting work', 
   assert.equal(restored.status, 0, restored.stderr);
   assert.match(restored.stdout, /Restored 1 sessions/);
   assert.equal(readSessions(target).length, 2);
+});
+
+test('oversized CLI backups fail before emitting an unrestorable document', t => {
+  const dir = temporary(t);
+  const file = join(dir, 'sessions.jsonl');
+  const sample = { completedAt: '2026-10-28T12:00:00.000Z', minutes: 25, label: 'x'.repeat(200) };
+  const content = Array.from({ length: 30000 }, (_, index) => JSON.stringify({ ...sample, id: `sample-${index}` })).join('\n') + '\n';
+  writeFileSync(file, content);
+  const result = spawnSync(process.execPath, ['src/cli.js', 'backup'], { env: { ...process.env, TINY_FOCUS_HOME: dir }, encoding: 'utf8', timeout: 30_000, maxBuffer: 32 * 1024 * 1024 });
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stderr, /8 MiB/);
+  assert.equal(result.stdout, '');
+  assert.equal(readFileSync(file, 'utf8'), content);
+});
+
+test('serialized Unicode/control-safe backups can be parsed by the restore format', t => {
+  const dir = temporary(t);
+  const session = recordSession(25, 'کتاب 📚\u202e', dir);
+  const text = createBackupText(dir);
+  assert.doesNotMatch(text, /\u202e/);
+  assert.deepEqual(parseBackup(text), [session]);
 });
