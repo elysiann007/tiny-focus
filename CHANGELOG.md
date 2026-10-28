@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Added chronological history queries with inclusive UTC date filters, newest-match limits, and machine-readable JSON output.
+- Escaped bidirectional controls in JSON terminal output while preserving parsed session values.
+
 ## 1.3.0 — 2026-10-28
 
 - Added portable UTF-8 JSON backups with `backup`.
