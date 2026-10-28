@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added an isolated real-CLI demo with fictional samples and backup round-trip assertions.
+- Run tests and demo on pull requests and main pushes, avoiding duplicate feature-push runs while retaining all four compatibility combinations.
+
 - Added focus-timer journal preflight to reject corrupt, busy or unusable storage before the countdown begins, while keeping break timers independent.
 
 - Added text/JSON focus summaries with total minutes, average duration, active days, date ranges and exact-label breakdowns.

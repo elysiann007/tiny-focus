@@ -5,7 +5,7 @@
   "description": "An offline Pomodoro timer and focus journal with zero runtime dependencies",
   "type": "module",
   "bin": { "tiny-focus": "./src/cli.js" },
-  "scripts": { "test": "node --test", "start": "node src/cli.js" },
+  "scripts": { "test": "node --test", "start": "node src/cli.js", "demo": "node scripts/demo.js" },
   "engines": { "node": ">=22" },
   "license": "MIT"
 }
