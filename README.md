@@ -15,6 +15,29 @@ cd tiny-focus
 node src/cli.js --help
 ```
 
+Try the entire journal/report/backup workflow without touching your own data:
+
+```sh
+npm run demo
+```
+
+The demo uses three explicitly fictional sample sessions, runs the real CLI in temporary data directories, checks report and restore results, and removes the temporary files afterward. It makes no network calls and overrides `TINY_FOCUS_HOME` for every child command.
+
+Example output from those samples:
+
+```text
+Focus summary (Europe/Istanbul)
+Sessions: 3
+Total minutes: 60
+Average session: 20 min
+Active days: 2
+Period: 2026-10-27 through 2026-10-28
+
+By label:
+40 min  2 sessions  "Read"
+20 min  1 sessions  "Write"
+```
+
 ## Usage
 
 ```sh
@@ -98,6 +121,6 @@ Requires Node.js 22 or newer. Source code is MIT licensed.
 npm test
 ```
 
-CI runs the same test suite on Windows and Linux with Node.js 22 and 24. See the [changelog](CHANGELOG.md) for release details.
+CI runs the same test suite and isolated demo on Windows and Linux with Node.js 22 and 24. Pull requests and main-branch pushes are checked; superseded runs are cancelled. See the [changelog](CHANGELOG.md) for release details.
 
 Developed with assistance from OpenAI Codex. Commit authorship belongs to the repository owner; no human collaborators are implied.
