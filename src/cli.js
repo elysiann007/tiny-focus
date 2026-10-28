@@ -9,6 +9,12 @@ import { createBackupText, restoreBackupFile } from './backup.js';
 import { parseHistoryOptions, selectHistory } from './history.js';
 import { focusSummary, parseSummaryOptions } from './summary.js';
 
+// Consumers such as head may intentionally close a pipe before all output is read.
+process.stdout.on('error', error => {
+  if (error.code !== 'EPIPE') throw error;
+  process.exitCode ??= 0;
+});
+
 const help = `Tiny Focus — offline focus journal
 
 Usage:
@@ -148,4 +154,8 @@ async function main() {
   }
 }
 
-main().catch(error => { console.error(`Error: ${terminalText(error.message)}`); process.exitCode = 1; });
+main().catch(error => {
+  if (error.code === 'EPIPE') { process.exitCode ??= 0; return; }
+  console.error(`Error: ${terminalText(error.message)}`);
+  process.exitCode = 1;
+});

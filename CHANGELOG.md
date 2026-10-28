@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Handle intentionally closed stdout pipes for CSV/JSON output without an unhandled EPIPE stack trace, preserving the journal.
+
 - Normalize focus labels consistently across timers and manual logs: trim before the length check and display the same default label that is saved.
 
 ## 1.4.1 — 2026-10-28
