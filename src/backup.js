@@ -3,12 +3,21 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { dataDirectory, readSessions, validateSession, withJournalLock } from './journal.js';
+import { jsonText } from './terminal.js';
 
 const MAX_BACKUP_BYTES = 8 * 1024 * 1024;
 
 export function createBackup(directory = dataDirectory()) {
   const sessions = withJournalLock(directory, () => readSessions(directory));
   return { format: 'tiny-focus', version: 1, createdAt: new Date().toISOString(), sessions };
+}
+
+export function createBackupText(directory = dataDirectory()) {
+  const text = jsonText(createBackup(directory));
+  if (Buffer.byteLength(text, 'utf8') > MAX_BACKUP_BYTES) {
+    throw new Error('Serialized backup exceeds the 8 MiB restore limit. Journal is unchanged; copy sessions.jsonl for a full archive.');
+  }
+  return text;
 }
 
 export function parseBackup(text) {

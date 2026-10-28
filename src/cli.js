@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { openTasks } from './github.js';
 import { terminalText, jsonText } from './terminal.js';
 import { runTimer } from './timer.js';
-import { createBackup, restoreBackupFile } from './backup.js';
+import { createBackupText, restoreBackupFile } from './backup.js';
 import { parseHistoryOptions, selectHistory } from './history.js';
 import { focusSummary, parseSummaryOptions } from './summary.js';
 
@@ -124,7 +124,7 @@ async function main() {
     }
     case 'backup': {
       if (duration !== undefined) throw new Error('backup does not accept arguments.');
-      process.stdout.write(jsonText(createBackup()));
+      process.stdout.write(createBackupText());
       break;
     }
     case 'restore': {
