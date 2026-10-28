@@ -23,7 +23,7 @@ test('an already-cancelled timer does not tick or sleep', async () => {
 
 test('cancelling a sleeping timer aborts promptly', async () => {
   const controller = new AbortController();
-  const timer = runTimer(25, { signal: controller.signal, onTick() { controller.abort(); } });
+  const timer = runTimer(25, { signal: controller.signal, onTick() { queueMicrotask(() => controller.abort()); } });
   await assert.rejects(timer, { name: 'AbortError' });
 });
 
