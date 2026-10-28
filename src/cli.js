@@ -3,9 +3,10 @@ import { minutes, readSessions, recordSession } from './journal.js';
 import { dailyStats, toCsv } from './reports.js';
 import { readFileSync } from 'node:fs';
 import { openTasks } from './github.js';
-import { terminalText } from './terminal.js';
+import { terminalText, jsonText } from './terminal.js';
 import { runTimer } from './timer.js';
 import { createBackup, restoreBackupFile } from './backup.js';
+import { parseHistoryOptions, selectHistory } from './history.js';
 
 const help = `Tiny Focus — offline focus journal
 
@@ -13,7 +14,7 @@ Usage:
   node src/cli.js start [minutes] [label]  Start a timer (default: 25)
   node src/cli.js break [minutes]          Take a break (default: 5, never logged)
   node src/cli.js log <minutes> [label]    Log a completed session
-  node src/cli.js history                 Show completed sessions
+  node src/cli.js history [options]       Show completed sessions in time order
   node src/cli.js stats [--timezone IANA]  Daily totals (default: UTC)
   node src/cli.js export                  Write CSV to stdout
   node src/cli.js backup                  Write a JSON backup to stdout
@@ -23,7 +24,9 @@ Usage:
   node src/cli.js tasks <owner/repo>       List open public GitHub issues (online)
 
 Quote labels containing spaces. Ctrl+C cancels a timer without recording it.
-Data is saved in ~/.tiny-focus; override with TINY_FOCUS_HOME.`;
+Data is saved in ~/.tiny-focus; override with TINY_FOCUS_HOME.
+History options: --since YYYY-MM-DD --until YYYY-MM-DD --limit 1..10000 --json
+History date boundaries are inclusive UTC days.`;
 
 async function main() {
   const [command = '--help', duration, ...labelParts] = process.argv.slice(2);
@@ -74,9 +77,10 @@ async function main() {
       break;
     }
     case 'history': {
-      if (duration !== undefined) throw new Error('history does not accept arguments.');
-      const sessions = readSessions();
-      if (!sessions.length) console.log('No sessions yet. Try: node src/cli.js log 25 "Reading"');
+      const options = parseHistoryOptions(process.argv.slice(3));
+      const sessions = selectHistory(readSessions(), options);
+      if (options.json) process.stdout.write(jsonText(sessions));
+      else if (!sessions.length) console.log('No matching sessions. Try: node src/cli.js log 25 "Reading"');
       else for (const entry of sessions) console.log(`${entry.completedAt}  ${entry.minutes} min  ${terminalText(JSON.stringify(entry.label))}`);
       break;
     }
@@ -101,7 +105,7 @@ async function main() {
     }
     case 'backup': {
       if (duration !== undefined) throw new Error('backup does not accept arguments.');
-      process.stdout.write(JSON.stringify(createBackup(), null, 2) + '\n');
+      process.stdout.write(jsonText(createBackup()));
       break;
     }
     case 'restore': {
