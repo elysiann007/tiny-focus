@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { setTimeout as delay } from 'node:timers/promises';
 import { minutes, readSessions, recordSession } from './journal.js';
+import { dailyStats, toCsv } from './reports.js';
 
 const help = `Tiny Focus — offline focus journal
 
@@ -8,6 +9,8 @@ Usage:
   node src/cli.js start [minutes] [label]  Start a timer (default: 25)
   node src/cli.js log <minutes> [label]    Log a completed session
   node src/cli.js history                 Show completed sessions
+  node src/cli.js stats                   Daily totals (UTC)
+  node src/cli.js export                  Write CSV to stdout
   node src/cli.js --help                  Show this help
 
 Quote labels containing spaces. Ctrl+C cancels a timer without recording it.
@@ -42,6 +45,21 @@ async function main() {
       const sessions = readSessions();
       if (!sessions.length) console.log('No sessions yet. Try: node src/cli.js log 25 "Reading"');
       else for (const entry of sessions) console.log(`${entry.completedAt}  ${entry.minutes} min  ${JSON.stringify(entry.label)}`);
+      break;
+    }
+    case 'stats': {
+      if (duration !== undefined) throw new Error('stats does not accept arguments.');
+      const days = dailyStats(readSessions());
+      if (!days.length) console.log('No sessions yet.');
+      else {
+        console.log('Date (UTC)  Sessions  Minutes');
+        for (const day of days) console.log(`${day.date}  ${day.sessions}  ${Number(day.minutes.toFixed(3))}`);
+      }
+      break;
+    }
+    case 'export': {
+      if (duration !== undefined) throw new Error('export does not accept arguments.');
+      process.stdout.write(toCsv(readSessions()));
       break;
     }
     default: throw new Error(`Unknown command: ${command}. Use --help.`);
