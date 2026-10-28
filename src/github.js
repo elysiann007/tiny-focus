@@ -1,3 +1,5 @@
+import { terminalText } from './terminal.js';
+
 export function repositoryName(value) {
   if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9_.-]{1,100}$/.test(value)) {
     throw new Error('Use a public repository in owner/repo format.');
@@ -32,7 +34,7 @@ export async function openTasks(repository, fetcher = fetch) {
     return {
       number: item.number,
       // Untrusted issue titles must not inject control sequences into the terminal.
-      title: item.title.replace(/[\x00-\x1f\x7f-\x9f\u202a-\u202e\u2066-\u2069]/g, ' '),
+      title: terminalText(item.title),
       url: `https://github.com/${owner}/${repo}/issues/${item.number}`
     };
   });
