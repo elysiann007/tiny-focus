@@ -123,4 +123,12 @@ npm test
 
 CI runs the same test suite and isolated demo on Windows and Linux with Node.js 22 and 24. Pull requests and main-branch pushes are checked; superseded runs are cancelled. See the [changelog](CHANGELOG.md) for release details.
 
+Check the distribution package locally:
+
+```sh
+npm run check:package
+```
+
+This requires the system `tar` utility. It creates an offline npm archive, verifies the file allowlist, extracts it to a temporary directory, runs the packaged CLI and demo, and removes the temporary files. No installation or registry publication occurs; the package is marked private. Only source, tests, scripts and public documentation are included, so incidental local notes and generated archives stay out of packages.
+
 Developed with assistance from OpenAI Codex. Commit authorship belongs to the repository owner; no human collaborators are implied.
