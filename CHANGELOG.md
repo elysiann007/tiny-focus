@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Normalize focus labels consistently across timers and manual logs: trim before the length check and display the same default label that is saved.
+
 ## 1.4.1 — 2026-10-28
 
 - Reject oversized serialized backups before stdout output, ensuring generated backups stay within restore's 8 MiB UTF-8 limit.

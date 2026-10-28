@@ -38,10 +38,15 @@ export function minutes(value) {
   return parsed;
 }
 
-export function recordSession(duration, label = 'Focus', directory = dataDirectory()) {
+export function normalizeLabel(label = 'Focus') {
   if (typeof label !== 'string') throw new Error('Label must be text.');
-  const entry = { id: randomUUID(), completedAt: new Date().toISOString(), minutes: minutes(duration), label: label.trim() || 'Focus' };
-  if (entry.label.length > 200) throw new Error('Label must be 200 characters or fewer.');
+  const normalized = label.trim() || 'Focus';
+  if (normalized.length > 200) throw new Error('Label must be 200 characters or fewer.');
+  return normalized;
+}
+
+export function recordSession(duration, label = 'Focus', directory = dataDirectory()) {
+  const entry = { id: randomUUID(), completedAt: new Date().toISOString(), minutes: minutes(duration), label: normalizeLabel(label) };
   withJournalLock(directory, () => {
     const content = journalContent(directory);
     parseJournal(content);
