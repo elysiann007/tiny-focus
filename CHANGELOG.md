@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 — 2026-10-28
+
+- Added portable UTF-8 JSON backups with `backup`.
+- Added validated merge-only `restore`, with ID deduplication and conflict detection.
+- Added an exclusive writer lock and flushed temporary-file replacement for restores.
+- Documented backup privacy, size limits, and interrupted-lock recovery.
+
 ## 1.2.0 — 2026-10-28
 
 - Added a configurable break timer that never counts breaks as focus sessions.

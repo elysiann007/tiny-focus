@@ -46,6 +46,24 @@ node src/cli.js export | Set-Content -Encoding utf8 sessions.csv
 1. Cancellable focus and break timers, manual session logging, and local history.
 2. Daily statistics in UTC or your chosen IANA time zone, plus safe CSV export.
 3. Optional public GitHub issue discovery to choose your next focus task.
+4. JSON backups and merge-only restore that preserves existing sessions.
+
+## Back up and restore
+
+```sh
+node src/cli.js backup > focus-backup.json
+node src/cli.js restore focus-backup.json
+```
+
+In Windows PowerShell, explicitly select UTF-8 for the backup:
+
+```powershell
+node src/cli.js backup | Set-Content -Encoding utf8 focus-backup.json
+```
+
+Backups contain your labels and timestamps. Store them privately. Restore accepts Tiny Focus format version 1 JSON files up to 8 MiB, validates the complete input, and merges sessions by ID. Identical sessions are skipped; conflicts or malformed input leave the journal unchanged. Existing local sessions are never removed. UTF-8 BOM files are supported. CSV exports are for spreadsheets and cannot be restored as backups.
+
+Writers and backups use an exclusive `.journal.lock` file in the data directory. Retry a busy journal after the other command exits. If a forced shutdown leaves a stale lock, close **all** Tiny Focus commands, copy your data directory as a backup, and remove **only** `.journal.lock` manually. Never remove a lock while a writer may still be running. Restore stages and flushes a temporary file before replacing the journal. This protects against ordinary concurrent Tiny Focus commands; it does not coordinate with external editors or guarantee recovery after disk failure.
 
 ## Pick a GitHub task
 
