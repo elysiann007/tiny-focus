@@ -13,7 +13,7 @@ Usage:
   node src/cli.js break [minutes]          Take a break (default: 5, never logged)
   node src/cli.js log <minutes> [label]    Log a completed session
   node src/cli.js history                 Show completed sessions
-  node src/cli.js stats                   Daily totals (UTC)
+  node src/cli.js stats [--timezone IANA]  Daily totals (default: UTC)
   node src/cli.js export                  Write CSV to stdout
   node src/cli.js --help                  Show this help
   node src/cli.js --version               Show the installed version
@@ -78,11 +78,15 @@ async function main() {
       break;
     }
     case 'stats': {
-      if (duration !== undefined) throw new Error('stats does not accept arguments.');
-      const days = dailyStats(readSessions());
+      let timeZone = 'UTC';
+      if (duration !== undefined) {
+        if (duration !== '--timezone' || labelParts.length !== 1) throw new Error('Usage: stats [--timezone Europe/Istanbul]');
+        timeZone = labelParts[0];
+      }
+      const days = dailyStats(readSessions(), timeZone);
       if (!days.length) console.log('No sessions yet.');
       else {
-        console.log('Date (UTC)  Sessions  Minutes');
+        console.log(`Date (${timeZone})  Sessions  Minutes`);
         for (const day of days) console.log(`${day.date}  ${day.sessions}  ${Number(day.minutes.toFixed(3))}`);
       }
       break;

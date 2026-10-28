@@ -23,6 +23,7 @@ node src/cli.js break 5
 node src/cli.js log 15 "Read a chapter"
 node src/cli.js history
 node src/cli.js stats
+node src/cli.js stats --timezone Europe/Istanbul
 node src/cli.js export > sessions.csv
 ```
 
@@ -30,7 +31,9 @@ Press Ctrl+C to cancel a timer. Cancelled sessions are not logged. Times are rec
 
 The `break` timer defaults to five minutes and never writes a focus session. Timers use a monotonic clock, so changing your system clock does not change the countdown. Cancelling with Ctrl+C exits with code 130; termination exits with code 143 where the OS delivers SIGTERM. Closing a process forcibly never records an unfinished focus timer.
 
-Daily totals use UTC dates, including when your local day differs. CSV export escapes multiline labels and neutralizes spreadsheet formula prefixes. Exported files contain your session labels; share only what you intend to make public.
+Daily totals use UTC dates by default, including when your local day differs. Use `stats --timezone Europe/Istanbul` (or another IANA time zone such as `America/New_York`) to group by local calendar days, including daylight saving transitions. Stored timestamps and CSV exports remain UTC. Invalid time zones fail without changing your journal.
+
+CSV export escapes multiline labels and neutralizes spreadsheet formula prefixes. Exported files contain your session labels; share only what you intend to make public.
 
 On Windows PowerShell, you can explicitly request UTF-8 for exports:
 
