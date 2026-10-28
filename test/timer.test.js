@@ -106,3 +106,27 @@ test('breaks remain available when the focus journal is corrupt or busy', t => {
   });
   assert.equal(readFileSync(file, 'utf8'), 'bad journal\n');
 });
+
+test('focus timers accept the same normalized label length as manual logging', t => {
+  const dir = mkdtempSync(join(tmpdir(), 'tiny-focus-label-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const label = '  ' + 'x'.repeat(200) + '  ';
+  const env = { ...process.env, TINY_FOCUS_HOME: dir };
+  const logged = spawnSync(process.execPath, ['src/cli.js', 'log', '0.001', label], { env, encoding: 'utf8', timeout: 5000 });
+  assert.equal(logged.status, 0, logged.stderr);
+  const timed = spawnSync(process.execPath, ['src/cli.js', 'start', '0.001', label], { env, encoding: 'utf8', timeout: 5000 });
+  assert.equal(timed.status, 0, timed.stderr);
+  const entries = readSessions(dir);
+  assert.equal(entries.length, 2);
+  assert.equal(entries[0].label, 'x'.repeat(200));
+  assert.equal(entries[1].label, entries[0].label);
+});
+
+test('whitespace-only focus labels display and save the same default', t => {
+  const dir = mkdtempSync(join(tmpdir(), 'tiny-focus-label-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const result = spawnSync(process.execPath, ['src/cli.js', 'start', '0.001', '   '], { env: { ...process.env, TINY_FOCUS_HOME: dir }, encoding: 'utf8', timeout: 5000 });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Focusing: Focus \(/);
+  assert.equal(readSessions(dir)[0].label, 'Focus');
+});

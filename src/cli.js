@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { minutes, readSessions, recordSession, preflightJournal } from './journal.js';
+import { minutes, readSessions, recordSession, preflightJournal, normalizeLabel } from './journal.js';
 import { dailyStats, toCsv } from './reports.js';
 import { readFileSync } from 'node:fs';
 import { openTasks } from './github.js';
@@ -46,7 +46,7 @@ async function main() {
       const isBreak = command === 'break';
       if (isBreak && labelParts.length) throw new Error('break accepts only an optional duration.');
       const value = minutes(duration ?? (isBreak ? 5 : 25));
-      if (label.length > 200) throw new Error('Label must be 200 characters or fewer.');
+      const focusLabel = normalizeLabel(label);
       if (!isBreak) preflightJournal();
       const controller = new AbortController();
       let exitCode = 130;
@@ -54,7 +54,7 @@ async function main() {
       const terminate = () => { exitCode = 143; controller.abort(); };
       process.once('SIGINT', interrupt);
       process.once('SIGTERM', terminate);
-      console.log(`${isBreak ? 'Taking a break' : `Focusing: ${terminalText(label)}`} (${value} min). Ctrl+C to cancel.`);
+      console.log(`${isBreak ? 'Taking a break' : `Focusing: ${terminalText(focusLabel)}`} (${value} min). Ctrl+C to cancel.`);
       try {
         await runTimer(value, { signal: controller.signal, onTick(remaining) {
           if (process.stdout.isTTY) process.stdout.write(`\rRemaining: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}   `);
@@ -70,7 +70,7 @@ async function main() {
       }
       if (isBreak) console.log('\nBreak complete! Ready for your next focus session.');
       else {
-        recordSession(value, label);
+        recordSession(value, focusLabel);
         console.log('\nSession complete! Take a short break.');
       }
       break;
