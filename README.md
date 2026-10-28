@@ -25,6 +25,7 @@ node src/cli.js history
 node src/cli.js history --since 2026-10-01 --until 2026-10-31 --limit 10 --json
 node src/cli.js stats
 node src/cli.js stats --timezone Europe/Istanbul
+node src/cli.js summary --timezone Europe/Istanbul
 node src/cli.js export > sessions.csv
 ```
 
@@ -33,6 +34,8 @@ Press Ctrl+C to cancel a timer. Cancelled sessions are not logged. Times are rec
 The `break` timer defaults to five minutes and never writes a focus session. Timers use a monotonic clock, so changing your system clock does not change the countdown. Cancelling with Ctrl+C exits with code 130; termination exits with code 143 where the OS delivers SIGTERM. Closing a process forcibly never records an unfinished focus timer.
 
 History displays sessions in completion-time order, including sessions restored from older backups. Optional `--since YYYY-MM-DD` and `--until YYYY-MM-DD` filters include the entire boundary days in **UTC**. `--limit 10` keeps the newest ten matches after filtering and displays them chronologically; limits must be 1–10000. `--json` emits only a JSON array (including `[]` when empty), preserving labels for scripts. These options can be combined and never rewrite the journal. Date filters are UTC even when `stats --timezone` uses local dates.
+
+`summary` shows completed session count, total minutes, average session duration, active calendar days, and totals by exact label. Use `--timezone` for local day grouping, `--since`/`--until` for inclusive **UTC** date filtering, and `--json` for scripts. Labels are ranked by total minutes; numeric totals are rounded to three decimal places. Empty reports contain zero totals and no first/last day. The command reads your journal without changing it.
 
 Daily totals use UTC dates by default, including when your local day differs. Use `stats --timezone Europe/Istanbul` (or another IANA time zone such as `America/New_York`) to group by local calendar days, including daylight saving transitions. Stored timestamps and CSV exports remain UTC. Invalid time zones fail without changing your journal.
 
