@@ -3,6 +3,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { minutes, readSessions, recordSession } from './journal.js';
 import { dailyStats, toCsv } from './reports.js';
 import { readFileSync } from 'node:fs';
+import { openTasks } from './github.js';
 
 const help = `Tiny Focus — offline focus journal
 
@@ -14,6 +15,7 @@ Usage:
   node src/cli.js export                  Write CSV to stdout
   node src/cli.js --help                  Show this help
   node src/cli.js --version               Show the installed version
+  node src/cli.js tasks <owner/repo>       List open public GitHub issues (online)
 
 Quote labels containing spaces. Ctrl+C cancels a timer without recording it.
 Data is saved in ~/.tiny-focus; override with TINY_FOCUS_HOME.`;
@@ -68,6 +70,17 @@ async function main() {
     case 'export': {
       if (duration !== undefined) throw new Error('export does not accept arguments.');
       process.stdout.write(toCsv(readSessions()));
+      break;
+    }
+    case 'tasks': {
+      if (labelParts.length) throw new Error('tasks accepts only one owner/repo argument.');
+      const tasks = await openTasks(duration);
+      if (!tasks.length) console.log('No open issues found in the first 100 results.');
+      else {
+        console.log('Up to 10 issues from the first 100 open issue/PR results:');
+        for (const task of tasks) console.log(`#${task.number} ${task.title}\n  ${task.url}`);
+        console.log('\nChoose a task, then start a focus session with its title.');
+      }
       break;
     }
     default: throw new Error(`Unknown command: ${command}. Use --help.`);
