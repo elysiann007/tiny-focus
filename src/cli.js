@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { openTasks } from './github.js';
 import { terminalText } from './terminal.js';
 import { runTimer } from './timer.js';
+import { createBackup, restoreBackupFile } from './backup.js';
 
 const help = `Tiny Focus — offline focus journal
 
@@ -15,6 +16,8 @@ Usage:
   node src/cli.js history                 Show completed sessions
   node src/cli.js stats [--timezone IANA]  Daily totals (default: UTC)
   node src/cli.js export                  Write CSV to stdout
+  node src/cli.js backup                  Write a JSON backup to stdout
+  node src/cli.js restore <backup.json>    Merge a backup, preserving local sessions
   node src/cli.js --help                  Show this help
   node src/cli.js --version               Show the installed version
   node src/cli.js tasks <owner/repo>       List open public GitHub issues (online)
@@ -94,6 +97,17 @@ async function main() {
     case 'export': {
       if (duration !== undefined) throw new Error('export does not accept arguments.');
       process.stdout.write(toCsv(readSessions()));
+      break;
+    }
+    case 'backup': {
+      if (duration !== undefined) throw new Error('backup does not accept arguments.');
+      process.stdout.write(JSON.stringify(createBackup(), null, 2) + '\n');
+      break;
+    }
+    case 'restore': {
+      if (!duration || labelParts.length) throw new Error('Usage: restore <backup.json>');
+      const result = restoreBackupFile(duration);
+      console.log(`Restored ${result.added} sessions; skipped ${result.skipped} identical sessions; total ${result.total}.`);
       break;
     }
     case 'tasks': {

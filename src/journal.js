@@ -1,9 +1,22 @@
-import { mkdirSync, appendFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, appendFileSync, readFileSync, openSync, closeSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 
 export const dataDirectory = () => process.env.TINY_FOCUS_HOME || join(homedir(), '.tiny-focus');
+
+export function withJournalLock(directory, action) {
+  mkdirSync(directory, { recursive: true });
+  const lockFile = join(directory, '.journal.lock');
+  let handle;
+  try { handle = openSync(lockFile, 'wx', 0o600); }
+  catch (error) {
+    if (error.code === 'EEXIST') throw new Error('Journal is in use. Retry after the other Tiny Focus command exits. See README for interrupted-lock recovery.');
+    throw error;
+  }
+  try { return action(); }
+  finally { closeSync(handle); unlinkSync(lockFile); }
+}
 
 export function minutes(value) {
   if (typeof value !== 'number' && (typeof value !== 'string' || !/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(value.trim()))) {
@@ -20,11 +33,12 @@ export function recordSession(duration, label = 'Focus', directory = dataDirecto
   if (typeof label !== 'string') throw new Error('Label must be text.');
   const entry = { id: randomUUID(), completedAt: new Date().toISOString(), minutes: minutes(duration), label: label.trim() || 'Focus' };
   if (entry.label.length > 200) throw new Error('Label must be 200 characters or fewer.');
-  const content = journalContent(directory);
-  parseJournal(content);
-  mkdirSync(directory, { recursive: true });
-  const separator = content && !content.endsWith('\n') ? '\n' : '';
-  appendFileSync(join(directory, 'sessions.jsonl'), separator + JSON.stringify(entry) + '\n', { mode: 0o600 });
+  withJournalLock(directory, () => {
+    const content = journalContent(directory);
+    parseJournal(content);
+    const separator = content && !content.endsWith('\n') ? '\n' : '';
+    appendFileSync(join(directory, 'sessions.jsonl'), separator + JSON.stringify(entry) + '\n', { mode: 0o600 });
+  });
   return entry;
 }
 
