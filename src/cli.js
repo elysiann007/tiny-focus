@@ -55,7 +55,7 @@ async function main() {
       if (duration !== undefined) throw new Error('history does not accept arguments.');
       const sessions = readSessions();
       if (!sessions.length) console.log('No sessions yet. Try: node src/cli.js log 25 "Reading"');
-      else for (const entry of sessions) console.log(`${entry.completedAt}  ${entry.minutes} min  ${JSON.stringify(entry.label)}`);
+      else for (const entry of sessions) console.log(`${entry.completedAt}  ${entry.minutes} min  ${terminalText(JSON.stringify(entry.label))}`);
       break;
     }
     case 'stats': {

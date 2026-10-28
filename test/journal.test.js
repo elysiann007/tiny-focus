@@ -98,6 +98,9 @@ test('CLI output cannot execute label or error control sequences', t => {
   const run = spawnSync(process.execPath, ['src/cli.js', 'log', '25', '\x1b[2JRead\u202e'], { env, encoding: 'utf8' });
   assert.equal(run.status, 0, run.stderr);
   assert.doesNotMatch(run.stdout, /[\x1b\u202e]/);
+  const history = spawnSync(process.execPath, ['src/cli.js', 'history'], { env, encoding: 'utf8' });
+  assert.equal(history.status, 0, history.stderr);
+  assert.doesNotMatch(history.stdout, /[\x1b\u202e]/);
   const invalid = spawnSync(process.execPath, ['src/cli.js', '\x1b[2J'], { env, encoding: 'utf8' });
   assert.equal(invalid.status, 1);
   assert.doesNotMatch(invalid.stderr, /\x1b/);
