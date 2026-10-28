@@ -43,8 +43,8 @@ node src/cli.js export | Set-Content -Encoding utf8 sessions.csv
 
 ## Features
 
-1. Focus timer, manual session logging, and local history.
-2. Daily statistics and CSV export.
+1. Cancellable focus and break timers, manual session logging, and local history.
+2. Daily statistics in UTC or your chosen IANA time zone, plus safe CSV export.
 3. Optional public GitHub issue discovery to choose your next focus task.
 
 ## Pick a GitHub task
@@ -71,5 +71,7 @@ Requires Node.js 22 or newer. Source code is MIT licensed.
 ```sh
 npm test
 ```
+
+CI runs the same test suite on Windows and Linux with Node.js 22 and 24. See the [changelog](CHANGELOG.md) for release details.
 
 Developed with assistance from OpenAI Codex. Commit authorship belongs to the repository owner; no human collaborators are implied.
