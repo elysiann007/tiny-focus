@@ -1,4 +1,4 @@
-import { mkdirSync, appendFileSync, readFileSync, openSync, closeSync, unlinkSync } from 'node:fs';
+import { mkdirSync, appendFileSync, readFileSync, openSync, closeSync, unlinkSync, accessSync, constants } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { randomUUID } from 'node:crypto';
@@ -16,6 +16,15 @@ export function withJournalLock(directory, action) {
   }
   try { return action(); }
   finally { closeSync(handle); unlinkSync(lockFile); }
+}
+
+export function preflightJournal(directory = dataDirectory()) {
+  return withJournalLock(directory, () => {
+    const sessions = readSessions(directory);
+    try { accessSync(join(directory, 'sessions.jsonl'), constants.W_OK); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+    return { sessions: sessions.length };
+  });
 }
 
 export function minutes(value) {
