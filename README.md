@@ -66,6 +66,8 @@ Daily totals use UTC dates by default, including when your local day differs. Us
 
 CSV export escapes multiline labels and neutralizes spreadsheet formula prefixes. Exported files contain your session labels; share only what you intend to make public.
 
+CSV/JSON commands also work with consumers that intentionally stop reading early, such as `head`: a closed output pipe exits quietly without changing the journal. A prefix of a JSON document is not a restorable backup; retain the complete output when creating backups.
+
 On Windows PowerShell, you can explicitly request UTF-8 for exports:
 
 ```powershell
