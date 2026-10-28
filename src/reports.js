@@ -1,7 +1,18 @@
-export function dailyStats(sessions) {
+export function dateFormatter(timeZone = 'UTC') {
+  if (typeof timeZone !== 'string' || !/^(?:UTC|[A-Za-z][A-Za-z0-9_+-]*(?:\/[A-Za-z0-9_+-]+)+)$/.test(timeZone)) {
+    throw new Error('Use an IANA time zone such as Europe/Istanbul or UTC.');
+  }
+  try {
+    return new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit', calendar: 'iso8601', numberingSystem: 'latn' });
+  } catch { throw new Error(`Unknown time zone: ${timeZone}.`); }
+}
+
+export function dailyStats(sessions, timeZone = 'UTC') {
+  const formatter = dateFormatter(timeZone);
   const days = new Map();
   for (const session of sessions) {
-    const day = new Date(session.completedAt).toISOString().slice(0, 10);
+    const parts = Object.fromEntries(formatter.formatToParts(new Date(session.completedAt)).map(part => [part.type, part.value]));
+    const day = `${parts.year}-${parts.month}-${parts.day}`;
     const current = days.get(day) || { date: day, sessions: 0, minutes: 0 };
     current.sessions += 1;
     current.minutes += session.minutes;
