@@ -1,0 +1,11 @@
+{
+  "name": "tiny-focus",
+  "version": "1.0.0",
+  "private": true,
+  "description": "An offline Pomodoro timer and focus journal with zero runtime dependencies",
+  "type": "module",
+  "bin": { "tiny-focus": "./src/cli.js" },
+  "scripts": { "test": "node --test", "start": "node src/cli.js" },
+  "engines": { "node": ">=22" },
+  "license": "MIT"
+}

@@ -1,0 +1,7 @@
+node_modules/
+.focus-data/
+*.tmp
+coverage/
+.env
+.env.*
+!.env.example
