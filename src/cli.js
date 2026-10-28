@@ -4,6 +4,7 @@ import { minutes, readSessions, recordSession } from './journal.js';
 import { dailyStats, toCsv } from './reports.js';
 import { readFileSync } from 'node:fs';
 import { openTasks } from './github.js';
+import { terminalText } from './terminal.js';
 
 const help = `Tiny Focus — offline focus journal
 
@@ -35,7 +36,7 @@ async function main() {
       const value = minutes(duration ?? 25);
       if (label.length > 200) throw new Error('Label must be 200 characters or fewer.');
       const deadline = Date.now() + value * 60_000;
-      console.log(`Focusing: ${label} (${value} min). Ctrl+C to cancel.`);
+      console.log(`Focusing: ${terminalText(label)} (${value} min). Ctrl+C to cancel.`);
       while (Date.now() < deadline) {
         const remaining = Math.max(1, Math.ceil((deadline - Date.now()) / 1000));
         if (process.stdout.isTTY) process.stdout.write(`\rRemaining: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}   `);
@@ -47,14 +48,14 @@ async function main() {
     }
     case 'log': {
       const entry = recordSession(duration, label);
-      console.log(`Saved ${entry.minutes} min: ${entry.label}`);
+      console.log(`Saved ${entry.minutes} min: ${terminalText(entry.label)}`);
       break;
     }
     case 'history': {
       if (duration !== undefined) throw new Error('history does not accept arguments.');
       const sessions = readSessions();
       if (!sessions.length) console.log('No sessions yet. Try: node src/cli.js log 25 "Reading"');
-      else for (const entry of sessions) console.log(`${entry.completedAt}  ${entry.minutes} min  ${JSON.stringify(entry.label)}`);
+      else for (const entry of sessions) console.log(`${entry.completedAt}  ${entry.minutes} min  ${terminalText(JSON.stringify(entry.label))}`);
       break;
     }
     case 'stats': {
@@ -87,4 +88,4 @@ async function main() {
   }
 }
 
-main().catch(error => { console.error(`Error: ${error.message}`); process.exitCode = 1; });
+main().catch(error => { console.error(`Error: ${terminalText(error.message)}`); process.exitCode = 1; });
