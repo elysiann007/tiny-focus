@@ -2,6 +2,7 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import { minutes, readSessions, recordSession } from './journal.js';
 import { dailyStats, toCsv } from './reports.js';
+import { readFileSync } from 'node:fs';
 
 const help = `Tiny Focus — offline focus journal
 
@@ -12,6 +13,7 @@ Usage:
   node src/cli.js stats                   Daily totals (UTC)
   node src/cli.js export                  Write CSV to stdout
   node src/cli.js --help                  Show this help
+  node src/cli.js --version               Show the installed version
 
 Quote labels containing spaces. Ctrl+C cancels a timer without recording it.
 Data is saved in ~/.tiny-focus; override with TINY_FOCUS_HOME.`;
@@ -21,6 +23,12 @@ async function main() {
   const label = labelParts.join(' ') || 'Focus';
   switch (command) {
     case '--help': case '-h': console.log(help); break;
+    case '--version': case '-v': {
+      if (duration !== undefined) throw new Error('--version does not accept arguments.');
+      const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+      console.log(pkg.version);
+      break;
+    }
     case 'start': {
       const value = minutes(duration ?? 25);
       if (label.length > 200) throw new Error('Label must be 200 characters or fewer.');
