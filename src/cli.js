@@ -1,0 +1,51 @@
+#!/usr/bin/env node
+import { setTimeout as delay } from 'node:timers/promises';
+import { minutes, readSessions, recordSession } from './journal.js';
+
+const help = `Tiny Focus — offline focus journal
+
+Usage:
+  node src/cli.js start [minutes] [label]  Start a timer (default: 25)
+  node src/cli.js log <minutes> [label]    Log a completed session
+  node src/cli.js history                 Show completed sessions
+  node src/cli.js --help                  Show this help
+
+Quote labels containing spaces. Ctrl+C cancels a timer without recording it.
+Data is saved in ~/.tiny-focus; override with TINY_FOCUS_HOME.`;
+
+async function main() {
+  const [command = '--help', duration, ...labelParts] = process.argv.slice(2);
+  const label = labelParts.join(' ') || 'Focus';
+  switch (command) {
+    case '--help': case '-h': console.log(help); break;
+    case 'start': {
+      const value = minutes(duration ?? 25);
+      if (label.length > 200) throw new Error('Label must be 200 characters or fewer.');
+      const deadline = Date.now() + value * 60_000;
+      console.log(`Focusing: ${label} (${value} min). Ctrl+C to cancel.`);
+      while (Date.now() < deadline) {
+        const remaining = Math.max(1, Math.ceil((deadline - Date.now()) / 1000));
+        if (process.stdout.isTTY) process.stdout.write(`\rRemaining: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}   `);
+        await delay(Math.min(1000, Math.max(1, deadline - Date.now())));
+      }
+      recordSession(value, label);
+      console.log('\nSession complete! Take a short break.');
+      break;
+    }
+    case 'log': {
+      const entry = recordSession(duration, label);
+      console.log(`Saved ${entry.minutes} min: ${entry.label}`);
+      break;
+    }
+    case 'history': {
+      if (duration !== undefined) throw new Error('history does not accept arguments.');
+      const sessions = readSessions();
+      if (!sessions.length) console.log('No sessions yet. Try: node src/cli.js log 25 "Reading"');
+      else for (const entry of sessions) console.log(`${entry.completedAt}  ${entry.minutes} min  ${JSON.stringify(entry.label)}`);
+      break;
+    }
+    default: throw new Error(`Unknown command: ${command}. Use --help.`);
+  }
+}
+
+main().catch(error => { console.error(`Error: ${error.message}`); process.exitCode = 1; });
