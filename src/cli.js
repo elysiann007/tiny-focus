@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { minutes, readSessions, recordSession } from './journal.js';
+import { minutes, readSessions, recordSession, preflightJournal } from './journal.js';
 import { dailyStats, toCsv } from './reports.js';
 import { readFileSync } from 'node:fs';
 import { openTasks } from './github.js';
@@ -47,6 +47,7 @@ async function main() {
       if (isBreak && labelParts.length) throw new Error('break accepts only an optional duration.');
       const value = minutes(duration ?? (isBreak ? 5 : 25));
       if (label.length > 200) throw new Error('Label must be 200 characters or fewer.');
+      if (!isBreak) preflightJournal();
       const controller = new AbortController();
       let exitCode = 130;
       const interrupt = () => { exitCode = 130; controller.abort(); };

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added focus-timer journal preflight to reject corrupt, busy or unusable storage before the countdown begins, while keeping break timers independent.
+
 - Added text/JSON focus summaries with total minutes, average duration, active days, date ranges and exact-label breakdowns.
 
 - Added chronological history queries with inclusive UTC date filters, newest-match limits, and machine-readable JSON output.
