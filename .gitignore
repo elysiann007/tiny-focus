@@ -2,6 +2,8 @@ node_modules/
 .focus-data/
 *.tmp
 coverage/
+dist/
+*.tgz
 .env
 .env.*
 !.env.example
