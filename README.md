@@ -19,6 +19,7 @@ node src/cli.js --help
 
 ```sh
 node src/cli.js start 25 "Learn JavaScript"
+node src/cli.js break 5
 node src/cli.js log 15 "Read a chapter"
 node src/cli.js history
 node src/cli.js stats
@@ -26,6 +27,8 @@ node src/cli.js export > sessions.csv
 ```
 
 Press Ctrl+C to cancel a timer. Cancelled sessions are not logged. Times are recorded in UTC. Journals stay in `~/.tiny-focus/sessions.jsonl`; set `TINY_FOCUS_HOME` to use a different directory. No data is uploaded. Labels are stored as plain text on your own computer. Avoid sensitive notes on shared computers. Keep a backup of your journal.
+
+The `break` timer defaults to five minutes and never writes a focus session. Timers use a monotonic clock, so changing your system clock does not change the countdown. Cancelling with Ctrl+C exits with code 130; termination exits with code 143 where the OS delivers SIGTERM. Closing a process forcibly never records an unfinished focus timer.
 
 Daily totals use UTC dates, including when your local day differs. CSV export escapes multiline labels and neutralizes spreadsheet formula prefixes. Exported files contain your session labels; share only what you intend to make public.
 
