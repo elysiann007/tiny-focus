@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added text/JSON focus summaries with total minutes, average duration, active days, date ranges and exact-label breakdowns.
+
 - Added chronological history queries with inclusive UTC date filters, newest-match limits, and machine-readable JSON output.
 - Escaped bidirectional controls in JSON terminal output while preserving parsed session values.
 

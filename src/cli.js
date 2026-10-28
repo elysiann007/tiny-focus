@@ -7,6 +7,7 @@ import { terminalText, jsonText } from './terminal.js';
 import { runTimer } from './timer.js';
 import { createBackup, restoreBackupFile } from './backup.js';
 import { parseHistoryOptions, selectHistory } from './history.js';
+import { focusSummary, parseSummaryOptions } from './summary.js';
 
 const help = `Tiny Focus — offline focus journal
 
@@ -16,6 +17,7 @@ Usage:
   node src/cli.js log <minutes> [label]    Log a completed session
   node src/cli.js history [options]       Show completed sessions in time order
   node src/cli.js stats [--timezone IANA]  Daily totals (default: UTC)
+  node src/cli.js summary [options]       Totals, active days and label breakdown
   node src/cli.js export                  Write CSV to stdout
   node src/cli.js backup                  Write a JSON backup to stdout
   node src/cli.js restore <backup.json>    Merge a backup, preserving local sessions
@@ -26,7 +28,8 @@ Usage:
 Quote labels containing spaces. Ctrl+C cancels a timer without recording it.
 Data is saved in ~/.tiny-focus; override with TINY_FOCUS_HOME.
 History options: --since YYYY-MM-DD --until YYYY-MM-DD --limit 1..10000 --json
-History date boundaries are inclusive UTC days.`;
+History date boundaries are inclusive UTC days.
+Summary options: --since YYYY-MM-DD --until YYYY-MM-DD --timezone IANA --json`;
 
 async function main() {
   const [command = '--help', duration, ...labelParts] = process.argv.slice(2);
@@ -95,6 +98,21 @@ async function main() {
       else {
         console.log(`Date (${timeZone})  Sessions  Minutes`);
         for (const day of days) console.log(`${day.date}  ${day.sessions}  ${Number(day.minutes.toFixed(3))}`);
+      }
+      break;
+    }
+    case 'summary': {
+      const options = parseSummaryOptions(process.argv.slice(3));
+      const summary = focusSummary(readSessions(), options);
+      if (options.json) process.stdout.write(jsonText(summary));
+      else {
+        console.log(`Focus summary (${summary.timeZone})`);
+        console.log(`Sessions: ${summary.sessions}\nTotal minutes: ${summary.totalMinutes}\nAverage session: ${summary.averageSessionMinutes} min\nActive days: ${summary.activeDays}`);
+        if (summary.firstDay) console.log(`Period: ${summary.firstDay} through ${summary.lastDay}`);
+        if (summary.byLabel.length) {
+          console.log('\nBy label:');
+          for (const entry of summary.byLabel) console.log(`${entry.minutes} min  ${entry.sessions} sessions  ${terminalText(JSON.stringify(entry.label))}`);
+        }
       }
       break;
     }
