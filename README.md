@@ -1,6 +1,19 @@
 # Tiny Focus
 
+[![Tests](https://github.com/elysiann007/tiny-focus/actions/workflows/test.yml/badge.svg)](https://github.com/elysiann007/tiny-focus/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A tiny, offline-first Pomodoro timer and focus journal for your terminal. Built with Node.js, without runtime dependencies, accounts, or telemetry.
+
+## Get started
+
+Install Node.js 22+ first, then:
+
+```sh
+git clone https://github.com/elysiann007/tiny-focus.git
+cd tiny-focus
+node src/cli.js --help
+```
 
 ## Usage
 
@@ -26,6 +39,20 @@ node src/cli.js export | Set-Content -Encoding utf8 sessions.csv
 
 1. Focus timer, manual session logging, and local history.
 2. Daily statistics and CSV export.
+3. Optional public GitHub issue discovery to choose your next focus task.
+
+## Pick a GitHub task
+
+```sh
+node src/cli.js tasks elysiann007/tiny-focus
+node src/cli.js start 25 "Work on a GitHub issue"
+```
+
+Only `tasks` needs internet access. It sends the requested repository name to GitHub's public REST API, fetches the first 100 open issue/PR entries, excludes PRs, and shows up to 10 issues. It does not send your journal, authenticate, modify issues, or read private repositories. GitHub can see normal request metadata such as your IP address. Public API rate limits apply; retry later if limited. Redirected/renamed repositories require the current owner/repo name.
+
+## Help improve it
+
+See [contributing](CONTRIBUTING.md), browse [beginner-friendly issues](https://github.com/elysiann007/tiny-focus/labels/good%20first%20issue), or ask a question in [Discussions](https://github.com/elysiann007/tiny-focus/discussions). If the project is useful to you, a GitHub star helps other people find it.
 
 ## Türkçe hızlı başlangıç
 
